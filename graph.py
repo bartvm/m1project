@@ -22,12 +22,12 @@ def stations_on_lines(G, lines):
 	stations = []
 	for connection in G.edges():
 		for line in G[connection[0]][connection[1]]['lines']:
-			if int(line[0]) in lines:
+			if line[0] in lines:
 				stations.append(connection[0])
 				stations.append(connection[1])
 	return list(set(stations))
 
-def load(stations_file='data/stations.csv', lines_file='data/lines.csv', connections_file='data/connections.csv'):
+def load(exclude=[], stations_file='data/stations.csv', lines_file='data/lines.csv', connections_file='data/connections.csv'):
 
 	# Open and load the CSV files
 
@@ -47,14 +47,20 @@ def load(stations_file='data/stations.csv', lines_file='data/lines.csv', connect
 		G.add_node(int(station['id']), pos=(float(station['lon']), float(station['lat'])), label=station['name'])
 
 	for connection in connections:
-		G.add_edge(int(connection['station1_id']), int(connection['station2_id']), weight=distance(G.node[int(connection['station1_id'])]['pos'], G.node[int(connection['station2_id'])]['pos']))
-		for line in lines:
-			if line['id'] == connection['line_id']:
-				line_colour = line['color']
-				line_name = line['name']
-				f2.seek(0)
-				break
-		G[int(connection['station1_id'])][int(connection['station2_id'])].setdefault('lines', []).append([int(connection['line_id']), line_name, line_colour])
+		if not int(connection['line_id']) in exclude:
+			G.add_edge(int(connection['station1_id']), int(connection['station2_id']), weight=distance(G.node[int(connection['station1_id'])]['pos'], G.node[int(connection['station2_id'])]['pos']))
+			for line in lines:
+				if line['id'] == connection['line_id']:
+					line_colour = line['color']
+					line_name = line['name']
+					f2.seek(0)
+					break
+			G[int(connection['station1_id'])][int(connection['station2_id'])].setdefault('lines', []).append([int(connection['line_id']), line_name, line_colour])
+
+	degrees = G.degree()
+	orphans = [n for n in degrees if degrees[n] == 0]
+	G.remove_nodes_from(orphans)
+
 	return G
 
 def plot(G):
