@@ -1,4 +1,4 @@
-_station1,_station2,_line
+station1_id,station2_id,line_id
 11,212,1
 49,87,1
 82,163,1
