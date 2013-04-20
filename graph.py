@@ -2,11 +2,12 @@ import networkx as nx
 import csv
 import matplotlib.pyplot as plt
 import math
+from random import choice
 
-def distance(origin, destination):
-	lon1, lat1 = origin
-	lon2, lat2 = destination
-	radius = 6371009 # m
+def distance(G, origin, destination, pos='pos'):
+	lon1, lat1 = G.node[origin][pos]
+	lon2, lat2 = G.node[destination][pos]
+	radius = 6371.009 # km
 
 	lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
 
@@ -48,7 +49,7 @@ def load(exclude=[], stations_file='data/stations.csv', lines_file='data/lines.c
 
 	for connection in connections:
 		if not int(connection['line_id']) in exclude:
-			G.add_edge(int(connection['station1_id']), int(connection['station2_id']), weight=distance(G.node[int(connection['station1_id'])]['pos'], G.node[int(connection['station2_id'])]['pos']))
+			G.add_edge(int(connection['station1_id']), int(connection['station2_id']), distance=distance(G, int(connection['station1_id']), int(connection['station2_id'])))
 			for line in lines:
 				if line['id'] == connection['line_id']:
 					line_colour = line['color']
@@ -56,6 +57,8 @@ def load(exclude=[], stations_file='data/stations.csv', lines_file='data/lines.c
 					f2.seek(0)
 					break
 			G[int(connection['station1_id'])][int(connection['station2_id'])].setdefault('lines', []).append([int(connection['line_id']), line_name, line_colour])
+
+	# In case some lines were excluded, remove orphan nodes
 
 	degrees = G.degree()
 	orphans = [n for n in degrees if degrees[n] == 0]
@@ -67,3 +70,24 @@ def plot(G):
 	edge_colours = ['#' + G[f][t]['lines'][0][2] for f,t in G.edges()]
 	nx.draw(G, nx.get_node_attributes(G,'pos'), with_labels=False, font_size=10, labels=nx.get_node_attributes(G,'label'), node_color='#ffffff', edge_color=edge_colours, node_shape='.', node_size=100, width=3)
 	plt.show()
+
+def random_removal(G, runs=1, plot=False):
+	data = [0 for i in range(len(G.nodes()) + 1)]
+	for i in range(1, runs + 1):
+		H = G.copy()
+		while len(H.nodes()) > 0:
+			max_cluster = max(len(cluster) for cluster in nx.connected_components(H))
+			data[len(G.nodes()) - len(H.nodes())] += float(max_cluster) / len(G.nodes())
+			H.remove_node(choice(H.nodes()))
+	data = [value / runs for value in data]
+	if plot:
+		return [[float(i) / len(G.nodes()) for i in range(len(G.nodes()) + 1)], data]
+	else:
+		return data
+
+
+
+
+
+
+
