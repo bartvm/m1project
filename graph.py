@@ -71,9 +71,9 @@ def plot(G):
 	nx.draw(G, nx.get_node_attributes(G,'pos'), with_labels=False, font_size=10, labels=nx.get_node_attributes(G,'label'), node_color='#ffffff', edge_color=edge_colours, node_shape='.', node_size=100, width=3)
 	plt.show()
 
-def random_removal(G, runs=1, plot=False):
+def random_removal_largest_cluster(G, runs=1, plot=False):
 	data = [0 for i in range(len(G.nodes()) + 1)]
-	for i in range(1, runs + 1):
+	for i in range(runs):
 		H = G.copy()
 		while len(H.nodes()) > 0:
 			max_cluster = max(len(cluster) for cluster in nx.connected_components(H))
@@ -85,9 +85,20 @@ def random_removal(G, runs=1, plot=False):
 	else:
 		return data
 
-
-
-
-
-
-
+def random_removal_efficiency(G, runs=1, plot=False):
+	data = [0 for i in range(len(G.nodes()) + 1)]
+	for i in range(runs):
+		H = G.copy()
+		while len(H.nodes()) > 1:
+			summation = 0
+			for station in H.nodes():
+				destinations = nx.single_source_shortest_path_length(H, station)
+				summation += sum([1. / destinations[j] for j in destinations if not j == station])
+			data[len(G.nodes()) - len(H.nodes())] += \
+				1. / (len(H.nodes()) * (len(H.nodes()) - 1)) * summation
+			H.remove_node(choice(H.nodes()))
+	data = [value / runs for value in data]
+	if plot:
+		return [[float(i) / len(G.nodes()) for i in range(len(G.nodes()) + 1)], data]
+	else:
+		return data
