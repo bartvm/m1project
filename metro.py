@@ -213,8 +213,7 @@ class Network(object):
 
 
 class Station(object):
-    """Defines a station with a name, position, passenger flow, transfer times
-    between lines, etc.
+    """Defines a station with a name, position, passenger flow
     """
     def __init__(self, id, name, pos, network):
         self.id = id
@@ -267,27 +266,12 @@ class Station(object):
     def total_exit(self):
         return numpy.sum([station.entry[self] for station in self.network])
 
-    def isneighbor(self, station):
-        pass
-
-    # def get_nodes(self, incoming='all', service=False):
-    #     get_nodes = set()
-    #     for node in self.node:
-    #         if node.incoming == incoming or incoming == 'all':
-    #             if service == True and node.service != None:
-    #                 get_nodes.add(node)
-    #             elif service == False:
-    #                 get_nodes.add(node)
-    #             elif node.service == service:
-    #                 get_nodes.add(node)
-    #     return get_nodes
-
 
 class Line(object):
     """Defines a line, consisting of a number of services. Lines are identified
     by a name and a color.
 
-    Colors have to be HTML strings e.g. #12a3f3.
+    Colors have to be HTML strings without the pound sign e.g. 12a3f3.
     """
     def __init__(self, id, name, color, network):
         self.id = id
@@ -317,12 +301,8 @@ class Line(object):
 
 class Service(object):
     """A service is a sequence of stations, and the tracks that can be taken to
-    travel between them. Note that some services can use multiple tracks
-    between stations. The sequence of stations should be connected.
-
-    Services are created by adding stations and tracks sequentially in
-    separate lists, this way we can be sure that services can be iterated
-    over, looked up in lists, etc. easily.
+    travel between them. Note that we assume all services travel in both directions
+    (which strictly speaking isn't true for the London Underground).
     """
     def __init__(self, id, line):
         self.id = id
