@@ -12,5 +12,7 @@ id,color,name
 11,0076bd,Victoria
 12,89cbc1,Waterloo & City
 13,00A77E,DLR
-14,666666,Mapped OSI
+14,666666,Mapped OSI (LU)
 15,aaaaaa,Unmapped OSI
+16,666666,Mapped OSI (LU and DLR)
+17,666666,Mapped OSI (LU and LO)
